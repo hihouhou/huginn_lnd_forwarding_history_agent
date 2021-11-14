@@ -15,6 +15,8 @@ module Agents
 
       `num_max_events` for the max result wanted
 
+      `start_time` is used for fetching since X days ago
+
       `expected_receive_period_in_days` is used to determine if the Agent is working. Set it to the maximum number of days
       that you anticipate passing without this Agent receiving an incoming Event.
       MD
@@ -39,7 +41,8 @@ module Agents
     def default_options
       {
         'url' => '',
-        'num_max_events' => '10',
+#        'num_max_events' => '10',
+        'start_time' => '1',
         'debug' => 'false',
         'changes_only' => 'true',
         'expected_receive_period_in_days' => '2',
@@ -48,7 +51,8 @@ module Agents
     end
 
     form_configurable :url, type: :string
-    form_configurable :num_max_events, type: :string
+#    form_configurable :num_max_events, type: :string
+    form_configurable :start_time, type: :string
     form_configurable :changes_only, type: :boolean
     form_configurable :macaroon, type: :string
     form_configurable :expected_receive_period_in_days, type: :string
@@ -58,9 +62,13 @@ module Agents
       unless options['url'].present?
         errors.add(:base, "url is a required field")
       end
+#
+#      unless options['num_max_events'].present?
+#        errors.add(:base, "num_max_events is a required field")
+#      end
 
-      unless options['num_max_events'].present?
-        errors.add(:base, "num_max_events is a required field")
+      unless options['start_time'].present?
+        errors.add(:base, "start_time is a required field")
       end
 
       if options.has_key?('changes_only') && boolify(options['changes_only']).nil?
@@ -91,10 +99,12 @@ module Agents
     private
 
     def fetch
+      timestamp_wanted = Time.now.to_i - ( 86400 * interpolated['start_time'].to_i)
       uri = URI.parse("#{interpolated['url']}/v1/switch")
       request = Net::HTTP::Post.new(uri)
       request["Grpc-Metadata-Macaroon"] = "#{interpolated['macaroon']}"
-      request.body = "{ \"num_max_events\": #{interpolated['num_max_events']}}"
+#      request.body = "{ \"num_max_events\": #{interpolated['num_max_events']}}"
+      request.body = "{ \"start_time\": \"#{timestamp_wanted}\"}"
       
       req_options = {
         use_ssl: uri.scheme == "https",
