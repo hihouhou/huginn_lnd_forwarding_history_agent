@@ -122,6 +122,7 @@ module Agents
       end
 
       payload = JSON.parse(response.body)
+      parsed = JSON.parse(response.body)
 
       if interpolated['debug'] == 'true'
         log "payload"
@@ -135,13 +136,13 @@ module Agents
       if interpolated['changes_only'] == 'true'
         if payload.to_s != memory['last_status']
           if "#{memory['last_status']}" == ''
-             payload["forwarding_events"].each do |event|
-               create_event payload: event
-             end
+            parsed["forwarding_events"].each do |event|
+              create_event payload: event
+            end
           else
             last_status = memory['last_status'].gsub("=>", ": ")
             last_status = JSON.parse(last_status)
-            payload["forwarding_events"].each do |event|
+            parsed["forwarding_events"].each do |event|
               found = false
               if interpolated['debug'] == 'true'
                 log "found is #{found}!"
